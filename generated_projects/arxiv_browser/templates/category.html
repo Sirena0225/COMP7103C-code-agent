@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category_name }} ({{ category_id }}) - arXiv 论文浏览器{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <nav class="breadcrumb">
+        <a href="{{ url_for('index') }}">🏠 首页</a>
+        <span class="separator">/</span>
+        <span>{{ category_id }}</span>
+    </nav>
+    <h1>{{ category_name }}</h1>
+    <p class="category-id-display">{{ category_id }}</p>
+</section>
+
+<section class="sidebar-layout">
+    <aside class="sidebar">
+        <h3>📂 分类列表</h3>
+        <ul class="category-list">
+            {% for cat_id, cat_name in categories.items() %}
+            <li class="{% if cat_id == category_id %}active{% endif %}">
+                <a href="{{ url_for('category', category_id=cat_id) }}">
+                    {{ cat_id }} - {{ cat_name }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </aside>
+    
+    <div class="main-area">
+        <div class="papers-header">
+            <h2>📄 最新论文</h2>
+            <span class="paper-count">共 {{ papers | length }} 篇</span>
+        </div>
+        
+        {% if papers %}
+        <div class="paper-list">
+            {% for paper in papers %}
+            <article class="paper-card">
+                <div class="paper-header">
+                    <a href="{{ url_for('paper', paper_id=paper.arxiv_id) }}" class="paper-title">
+                        {{ paper.title }}
+                    </a>
+                    <div class="paper-meta">
+                        <span class="paper-date">{{ paper.published | format_date_short }}</span>
+                        {% for cat in paper.categories[:3] %}
+                        <span class="paper-tag">{{ cat }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <p class="paper-authors">
+                    {% for author in paper.authors[:5] %}
+                    {{ author }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                    {% if paper.authors | length > 5 %}等{% endif %}
+                </p>
+                <p class="paper-summary">{{ paper.summary | truncate_text(200) }}</p>
+                <div class="paper-actions">
+                    <a href="{{ paper.pdf_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-primary">PDF</a>
+                    <a href="{{ paper.abs_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-secondary">arXiv</a>
+                    <a href="{{ url_for('paper', paper_id=paper.arxiv_id) }}" class="btn btn-sm btn-outline">详情</a>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        
+        <div class="pagination">
+            {% if page > 1 %}
+            <a href="?page={{ page - 1 }}" class="btn btn-secondary">⬅️ 上一页</a>
+            {% endif %}
+            <span class="page-info">第 {{ page }} 页</span>
+            {% if papers | length >= 20 %}
+            <a href="?page={{ page + 1 }}" class="btn btn-secondary">下一页 ➡️</a>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>该分类暂无论文</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+

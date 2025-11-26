@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}页面未找到 - arXiv 论文浏览器{% endblock %}
+
+{% block content %}
+<div class="error-page">
+    <div class="error-icon">🔍</div>
+    <h1>404</h1>
+    <p class="error-message">抱歉，您访问的页面不存在</p>
+    <p class="error-hint">可能是链接已过期或输入有误</p>
+    <div class="error-actions">
+        <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">🏠 返回首页</a>
+        <a href="{{ url_for('search') }}" class="btn btn-secondary btn-lg">🔍 搜索论文</a>
+    </div>
+</div>
+{% endblock %}
+

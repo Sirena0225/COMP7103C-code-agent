@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}{{ paper.title }} - arXiv 论文浏览器{% endblock %}
+
+{% block content %}
+<article class="paper-detail">
+    <nav class="breadcrumb">
+        <a href="{{ url_for('index') }}">🏠 首页</a>
+        <span class="separator">/</span>
+        <a href="{{ url_for('category', category_id=paper.primary_category) }}">{{ paper.primary_category }}</a>
+        <span class="separator">/</span>
+        <span>论文详情</span>
+    </nav>
+    
+    <header class="paper-detail-header">
+        <h1>{{ paper.title }}</h1>
+        
+        <div class="paper-detail-meta">
+            <div class="meta-item">
+                <span class="meta-label">📅 提交时间</span>
+                <span class="meta-value">{{ paper.published | format_date }}</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">🔄 更新时间</span>
+                <span class="meta-value">{{ paper.updated | format_date }}</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">📂 分类</span>
+                <div class="meta-value tags">
+                    {% for cat in paper.categories %}
+                    <a href="{{ url_for('category', category_id=cat) }}" class="tag">{{ cat }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">🔗 arXiv ID</span>
+                <span class="meta-value mono">{{ paper.arxiv_id }}</span>
+            </div>
+        </div>
+    </header>
+    
+    <section class="paper-section">
+        <h2>👥 作者</h2>
+        <div class="authors-list">
+            {% for author in paper.authors %}
+            <span class="author-name">{{ author }}</span>
+            {% endfor %}
+        </div>
+        {% if paper.affiliations %}
+        <div class="affiliations-list">
+            <strong>🏛️ 机构：</strong>
+            {% for affil in paper.affiliations %}
+            <span class="affiliation">{{ affil }}</span>{% if not loop.last %}, {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+    </section>
+    
+    <section class="paper-section">
+        <h2>📝 摘要</h2>
+        <div class="abstract-content">
+            {{ paper.summary }}
+        </div>
+    </section>
+    
+    <section class="paper-section">
+        <h2>📎 链接</h2>
+        <div class="paper-links">
+            <a href="{{ paper.pdf_url }}" target="_blank" rel="noopener" class="btn btn-lg btn-primary">
+                📥 下载 PDF
+            </a>
+            <a href="{{ paper.abs_url }}" target="_blank" rel="noopener" class="btn btn-lg btn-secondary">
+                🔗 arXiv 页面
+            </a>
+        </div>
+    </section>
+    
+    <section class="paper-section">
+        <h2>📋 BibTeX 引用</h2>
+        <div class="bibtex-container">
+            <pre class="bibtex-code" id="bibtex-content">{{ bibtex }}</pre>
+            <button class="btn btn-copy" id="copy-btn" onclick="copyBibtex()">
+                📋 一键复制
+            </button>
+        </div>
+    </section>
+</article>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyBibtex() {
+    const bibtexContent = document.getElementById('bibtex-content').textContent;
+    const btn = document.getElementById('copy-btn');
+    
+    navigator.clipboard.writeText(bibtexContent).then(() => {
+        const originalText = btn.textContent;
+        btn.textContent = '✅ 已复制!';
+        btn.classList.add('copied');
+        
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.classList.remove('copied');
+        }, 2000);
+    }).catch(err => {
+        console.error('复制失败:', err);
+        // 降级方案：使用 textarea
+        const textarea = document.createElement('textarea');
+        textarea.value = bibtexContent;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        
+        btn.textContent = '✅ 已复制!';
+        setTimeout(() => {
+            btn.textContent = '📋 一键复制';
+        }, 2000);
+    });
+}
+</script>
+{% endblock %}
+

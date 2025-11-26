@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}arXiv 论文浏览器 - 发现最新计算机科学研究{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <h1>🔬 探索最新计算机科学研究</h1>
+    <p class="hero-subtitle">{{ current_date }} | 汇集 arXiv 最新论文</p>
+</section>
+
+<section class="categories-section">
+    <h2 class="section-title">📚 分类导航</h2>
+    <div class="category-grid">
+        {% for cat_id, cat_name in categories.items() %}
+        <a href="{{ url_for('category', category_id=cat_id) }}" class="category-card">
+            <span class="category-id">{{ cat_id }}</span>
+            <span class="category-name">{{ cat_name }}</span>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="papers-section">
+    <h2 class="section-title">🔥 最新 AI 论文</h2>
+    {% if featured_papers %}
+    <div class="paper-list">
+        {% for paper in featured_papers %}
+        <article class="paper-card">
+            <div class="paper-header">
+                <a href="{{ url_for('paper', paper_id=paper.arxiv_id) }}" class="paper-title">
+                    {{ paper.title }}
+                </a>
+                <div class="paper-meta">
+                    <span class="paper-date">📅 {{ paper.published | format_date_short }}</span>
+                    <span class="paper-category">{{ paper.primary_category }}</span>
+                </div>
+            </div>
+            <p class="paper-authors">
+                👤 
+                {% for author in paper.authors[:5] %}
+                {{ author }}{% if not loop.last %}, {% endif %}
+                {% endfor %}
+                {% if paper.authors | length > 5 %}等 {{ paper.authors | length }} 位作者{% endif %}
+            </p>
+            <p class="paper-summary">{{ paper.summary | truncate_text(280) }}</p>
+            <div class="paper-actions">
+                <a href="{{ paper.pdf_url }}" target="_blank" rel="noopener" class="btn btn-primary">
+                    📥 PDF
+                </a>
+                <a href="{{ paper.abs_url }}" target="_blank" rel="noopener" class="btn btn-secondary">
+                    🔗 arXiv
+                </a>
+                <a href="{{ url_for('paper', paper_id=paper.arxiv_id) }}" class="btn btn-outline">
+                    📋 详情
+                </a>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>暂无论文数据，请稍后刷新</p>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}
+

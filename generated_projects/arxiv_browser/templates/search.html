@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}搜索{% if query %}: {{ query }}{% endif %} - arXiv 论文浏览器{% endblock %}
+
+{% block content %}
+<section class="search-page">
+    <h1>🔍 搜索论文</h1>
+    
+    <form action="{{ url_for('search') }}" method="get" class="search-form-large">
+        <input type="text" name="q" value="{{ query }}" placeholder="输入关键词..." 
+               class="search-input-large" autofocus>
+        <select name="category" class="category-select">
+            <option value="cs" {% if category == 'cs' %}selected{% endif %}>全部 CS</option>
+            {% for cat_id, cat_name in categories.items() %}
+            <option value="{{ cat_id }}" {% if category == cat_id %}selected{% endif %}>
+                {{ cat_id }} - {{ cat_name }}
+            </option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary btn-lg">搜索</button>
+    </form>
+    
+    {% if query %}
+    <p class="search-info">
+        在 <strong>{{ category }}</strong> 中搜索 "<strong>{{ query }}</strong>"，
+        找到 {{ papers | length }} 篇论文
+    </p>
+    
+    {% if papers %}
+    <div class="paper-list">
+        {% for paper in papers %}
+        <article class="paper-card">
+            <div class="paper-header">
+                <a href="{{ url_for('paper', paper_id=paper.arxiv_id) }}" class="paper-title">
+                    {{ paper.title }}
+                </a>
+                <div class="paper-meta">
+                    <span class="paper-date">{{ paper.published | format_date_short }}</span>
+                    <span class="paper-category">{{ paper.primary_category }}</span>
+                </div>
+            </div>
+            <p class="paper-authors">
+                {% for author in paper.authors[:5] %}
+                {{ author }}{% if not loop.last %}, {% endif %}
+                {% endfor %}
+                {% if paper.authors | length > 5 %}等{% endif %}
+            </p>
+            <p class="paper-summary">{{ paper.summary | truncate_text(200) }}</p>
+            <div class="paper-actions">
+                <a href="{{ paper.pdf_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-primary">PDF</a>
+                <a href="{{ paper.abs_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-secondary">arXiv</a>
+                <a href="{{ url_for('paper', paper_id=paper.arxiv_id) }}" class="btn btn-sm btn-outline">详情</a>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    
+    <div class="pagination">
+        {% if page > 1 %}
+        <a href="?q={{ query }}&category={{ category }}&page={{ page - 1 }}" class="btn btn-secondary">
+            ⬅️ 上一页
+        </a>
+        {% endif %}
+        <span class="page-info">第 {{ page }} 页</span>
+        {% if papers | length >= 20 %}
+        <a href="?q={{ query }}&category={{ category }}&page={{ page + 1 }}" class="btn btn-secondary">
+            下一页 ➡️
+        </a>
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>😔 未找到匹配的论文</p>
+        <p class="hint">尝试使用其他关键词或更改分类</p>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="search-hints">
+        <h3>💡 搜索提示</h3>
+        <ul>
+            <li>使用英文关键词获得更好的搜索结果</li>
+            <li>可以搜索标题、摘要中的关键词</li>
+            <li>选择特定分类可以缩小搜索范围</li>
+        </ul>
+        
+        <h3>🔥 热门搜索</h3>
+        <div class="hot-searches">
+            <a href="?q=transformer" class="hot-tag">Transformer</a>
+            <a href="?q=large language model" class="hot-tag">Large Language Model</a>
+            <a href="?q=diffusion" class="hot-tag">Diffusion</a>
+            <a href="?q=reinforcement learning" class="hot-tag">Reinforcement Learning</a>
+            <a href="?q=graph neural network" class="hot-tag">Graph Neural Network</a>
+            <a href="?q=attention mechanism" class="hot-tag">Attention</a>
+        </div>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}
+

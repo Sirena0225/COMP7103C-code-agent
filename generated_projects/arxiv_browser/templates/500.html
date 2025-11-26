@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}服务器错误 - arXiv 论文浏览器{% endblock %}
+
+{% block content %}
+<div class="error-page">
+    <div class="error-icon">⚠️</div>
+    <h1>500</h1>
+    <p class="error-message">服务器开小差了</p>
+    <p class="error-hint">请稍后重试，或联系管理员</p>
+    <div class="error-actions">
+        <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">🏠 返回首页</a>
+        <button onclick="location.reload()" class="btn btn-secondary btn-lg">🔄 刷新页面</button>
+    </div>
+</div>
+{% endblock %}
+
