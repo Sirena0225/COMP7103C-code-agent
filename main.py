@@ -4,6 +4,7 @@
 import asyncio
 import argparse
 import os
+import sys
 from pathlib import Path
 
 from rich.console import Console
@@ -15,6 +16,33 @@ from agents import PlannerAgent, CoderAgent, ReviewerAgent
 from config import Config, default_config
 
 console = Console()
+
+
+def run_flask_server(project_dir: Path, port: int = 5001, open_browser: bool = True):
+    """
+    运行生成的 Flask 网页应用
+    
+    Args:
+        project_dir: 项目目录路径
+        port: 服务器端口
+        open_browser: 是否自动打开浏览器
+    """
+    from run_server import run_flask_server as _run_server, find_flask_app, install_dependencies
+    
+    # 检查是否是 Flask 项目
+    if not find_flask_app(project_dir):
+        console.print("[yellow]⚠ 该项目不是 Flask 网页应用，跳过服务器启动[/yellow]")
+        return
+    
+    # 安装依赖
+    install_dependencies(project_dir)
+    
+    # 运行服务器
+    _run_server(
+        project_dir=project_dir,
+        port=port,
+        open_browser=open_browser
+    )
 
 
 ARXIV_BROWSER_REQUIREMENT = """
@@ -80,6 +108,25 @@ async def main():
         "--interactive", "-i",
         action="store_true",
         help="交互式模式"
+    )
+    
+    parser.add_argument(
+        "--run",
+        action="store_true",
+        help="生成完成后自动运行 Flask 服务器"
+    )
+    
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=5001,
+        help="Flask 服务器端口 (默认: 5001)"
+    )
+    
+    parser.add_argument(
+        "--no-browser",
+        action="store_true",
+        help="不自动打开浏览器"
     )
     
     args = parser.parse_args()
@@ -160,6 +207,15 @@ async def main():
         console.print("\n[dim]生成的文件:[/dim]")
         for file in state.files:
             console.print(f"  - {file.path}")
+        
+        # 如果指定了 --run 参数，自动运行 Flask 服务器
+        if args.run:
+            console.print("\n[bold cyan]🚀 启动 Flask 服务器...[/bold cyan]")
+            run_flask_server(
+                project_dir=output_dir,
+                port=args.port,
+                open_browser=not args.no_browser
+            )
         
     except Exception as e:
         console.print(f"\n[bold red]❌ 生成失败: {e}[/bold red]")
